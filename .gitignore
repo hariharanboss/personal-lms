@@ -1,0 +1,51 @@
+# Dependencies
+node_modules/
+
+# Build output
+.wrangler/
+dist/
+build/
+
+# Generated / cache files
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+*.map
+
+# Snapshots & state files (generated at runtime)
+current-kv-fs.json
+live-fs.json
+updated-fs.json
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Environment & secrets
+.env
+.env.local
+.env.*.local
+*.secret
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Git
+.git/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Testing
+coverage/
+.nyc_output
+
+# Temporary
+tmp/
+temp/
+*.tmp

@@ -1,0 +1,31 @@
+{
+  "name": "personal-lms",
+  "version": "1.0.0",
+  "description": "Self-hosted LMS for study materials running on Cloudflare Workers and KV",
+  "main": "worker.js",
+  "scripts": {
+    "build": "node build.js",
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "predeploy": "node build.js",
+    "start": "wrangler dev"
+  },
+  "keywords": [
+    "lms",
+    "self-hosted",
+    "cloudflare-kv",
+    "edge-storage",
+    "file-storage",
+    "single-password-auth",
+    "study-tools",
+    "no-login",
+    "lightweight",
+    "serverless"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {},
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
