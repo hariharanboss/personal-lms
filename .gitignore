@@ -26,6 +26,8 @@ Thumbs.db
 .env.local
 .env.*.local
 *.secret
+.dev.vars
+.dev.vars.*
 
 # IDE
 .vscode/
