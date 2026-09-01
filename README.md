@@ -1,398 +1,298 @@
-# 🪐 Jupiter Lab Codes
+# 📚 Personal LMS
 
-A password-protected online library (called an "LMS") that lets you browse and download laboratory code files — like C++ programs — right from your browser. Think of it as a secure digital folder for school code.
+**A self-hosted, single-password library for your study materials — no accounts, no database, no server to babysit.**
 
-**Made by:** Hariharan — [github.com/hariharanboss](https://github.com/hariharanboss)
+Personal LMS turns a Cloudflare Worker into a lightweight learning-management system: upload PDFs, images, Word docs, and code files, organize them into folders, and access everything from anywhere in the world with just one password. It runs entirely on Cloudflare's free edge network, so there's no VPS to maintain and no monthly hosting bill.
 
----
-
-## 🎯 What This Project Does
-
-Once you set it up, you'll have your own website where:
-
-- 🔐 Visitors type a password to get in (like a secret handshake)
-- 📂 You can browse folders full of code files
-- 📄 You can preview and download files (`.cpp`, `.pdf`, `.docx`, `.png`, and more)
-- 🔍 You can search and filter files
-- 🌙 You can switch between light and dark mode
-- 📤 Admins can upload new files
-- ☁️ It runs on Cloudflare's global network (super fast, everywhere)
+🔗 **Live demo:** [lms.vasudevhere0.workers.dev](https://lms.vasudevhere0.workers.dev/)
 
 ---
 
-## 📦 What's Inside This Folder
+## ✨ Features
 
-| File | What It Is |
-|------|-----------|
-| `index.html` | The website's design (colors, buttons, layout) |
-| `worker.js` | The "brain" of the website — handles requests and logic |
-| `sw.js` | A helper that caches files so the site works offline |
-| `build.js` | A tool that packages everything together |
-| `wrangler.toml` | Configuration file telling Cloudflare how to run your site |
-| `package.json` | Lists what tools the project needs |
-| `virtual-fs.default.js` | The default folder structure (your code files and where they link to) |
-| `virtual-fs.index.json` | A saved copy of the folder structure |
-
----
-
-## 🛠️ Tech Stack (What Technologies Are Used)
-
-Don't worry if these terms are new — here's what each one means:
-
-| Technology | What It Does |
-|------------|-------------|
-| **Cloudflare Workers** | Runs your website on Cloudflare's computers around the world — no need to buy your own server |
-| **Cloudflare KV** | A simple key-value storage (like a giant folder) that saves your file metadata |
-| **Vanilla JavaScript** | The programming language that makes the website interactive |
-| **Three.js** | Creates a cool animated particle background |
-| **Mammoth.js** | Converts `.docx` Word documents so you can read them in the browser |
-| **highlight.js** | Adds color to C++ code so it's easy to read |
-| **pdf.js** | Lets you view PDF files directly in the browser |
+- 🔐 **Single-password access** — one shared password gets visitors in; no sign-up, no user accounts, no OAuth to configure.
+- 🗂️ **Folder-based library** — organize files into subjects/folders and browse them in a clean sidebar.
+- 📄 **In-browser previews** — view PDFs (`pdf.js`), Word documents (`mammoth.js`), and syntax-highlighted code (`highlight.js`) without downloading anything.
+- 🔍 **Search & filter** — find files instantly by name, type, size, date, or tag.
+- 🌙 **Light/dark theme** — toggle appearance to match your preference.
+- 📤 **Admin upload panel** — a separate, stronger admin password unlocks drag-and-drop uploads and file management.
+- 📶 **Offline-friendly** — a service worker (`sw.js`) caches assets so the app keeps working with a spotty connection.
+- ☁️ **Edge-native storage** — file metadata lives in Cloudflare KV, replicated globally for fast reads no matter where a visitor connects from.
+- 💸 **Runs on the free tier** — no dedicated server, no database service, and (for typical personal use) no hosting cost.
 
 ---
 
-## 🚀 Live Demo
+## 🏗️ Architecture & Tech Stack
 
-The site is currently running at:
-
-🔗 **https://lms.vasudevhere0.workers.dev/**
-
----
-
-## 📁 Subjects Available
-
-| Subject | Files | What's Inside |
-|---------|-------|---------------|
-| **MATLAB** | 15 | Code examples for MATLAB |
-| **MPMC** | 9 | 8085 & 8051 Microprocessor/Microcontroller assembly codes |
-| **OOPS Lab** | 90+ | C++ Object-Oriented Programming across 6 sessions |
-| **DS Model-SEM Lab** | 16 | Data Structures: AVL trees, BFS, BST, sorting, linked lists, stacks, queues |
-
----
-
-## 🏗️ How the Website Works (Architecture)
-
-Here's what happens when you visit the site:
+Personal LMS has no traditional backend server or database — Cloudflare's edge platform plays both roles.
 
 ```
-Your Browser → Cloudflare Worker → Cloudflare KV Storage
-   (You)         (The Brain)         (The Storage)
+Browser  →  Cloudflare Worker  →  Cloudflare KV
+ (UI)         (routing/logic)      (file metadata store)
 ```
 
-1. You open the website in your browser
-2. Cloudflare receives your request and runs the worker code
-3. The worker checks the KV storage for the file list
-4. The website is sent to your browser with all the code links
+1. The browser requests the site; the **Cloudflare Worker** (`worker.js`) handles routing, authentication, and API logic at the edge.
+2. The Worker reads/writes file metadata (names, paths, tags) from **Cloudflare KV**, a globally-replicated key-value store.
+3. The Worker returns the pre-built HTML/JS bundle, and the browser renders the library, previews files, and talks back to the Worker for search, filtering, and (for admins) uploads.
+4. A **service worker** caches static assets client-side for offline resilience.
+
+| Layer | Technology | Purpose |
+|---|---|---|
+| **Compute** | Cloudflare Workers | Serverless edge runtime — no server to provision or patch |
+| **Storage** | Cloudflare KV | Key-value store for file metadata, globally distributed |
+| **Frontend** | Vanilla JavaScript, HTML/CSS | No framework overhead; fast load times |
+| **3D/Visual** | Three.js | Animated particle background |
+| **Document rendering** | pdf.js | In-browser PDF viewing |
+| **Document conversion** | Mammoth.js | Renders `.docx` files as readable HTML |
+| **Code highlighting** | highlight.js | Syntax highlighting for previewed source files |
+| **Tooling** | Wrangler CLI | Build, local dev server, and deployment to Cloudflare |
+| **Build** | Node.js + `build.js` | Bundles `index.html`/`sw.js` into `html.js`/`sw-content.js` for the Worker |
+
+### Project structure
+
+| File | Purpose |
+|---|---|
+| `index.html` | Frontend markup, styling, and layout |
+| `worker.js` | Core Worker logic — routing, auth, KV reads/writes |
+| `sw.js` | Service worker for offline asset caching |
+| `build.js` | Bundles `index.html` and `sw.js` into inlined JS the Worker can serve |
+| `html.js`, `sw-content.js` | Generated bundles (output of `npm run build`) |
+| `virtual-fs.default.js` | Default virtual folder structure / file index |
+| `wrangler.toml` | Cloudflare Worker + KV binding configuration |
+| `package.json` | npm scripts and project metadata |
 
 ---
 
-## ⚙️ How to Set Up and Host This Project
+## ✅ Requirements
 
-This guide will walk you through everything, step by step. **Follow each step in order** — do not skip ahead.
+Before installing, make sure you have:
 
----
-
-### Step 1: Create a Free Cloudflare Account
-
-What is Cloudflare? → It's a company that hosts websites for free. Think of it like a free web hosting service.
-
-1. Open your web browser (Chrome, Firefox, Edge, etc.)
-2. Go to: **https://dash.cloudflare.com/**
-3. Click **"Sign Up"** (top right corner)
-4. Enter your email address and create a password
-5. Check your email and click the verification link
-6. Log in with your new account
+- **Node.js** ≥ 18 ([nodejs.org](https://nodejs.org/)) — check with `node --version`
+- **npm** (bundled with Node.js)
+- **Wrangler CLI** — Cloudflare's deployment tool (installed below)
+- A **free Cloudflare account** ([dash.cloudflare.com](https://dash.cloudflare.com/))
+- **Git** (to clone the repository)
 
 ---
 
-### Step 2: Install Node.js (The Programming Tool)
+## ⚙️ Installation & Setup
 
-What is Node.js? → It's a tool that lets your computer run the project's scripts. Think of it like installing Java or Adobe Reader, but for this website project.
+### 1. Clone the repository
 
-1. Open your web browser
-2. Go to: **https://nodejs.org/**
-3. You'll see a big yellow button that says **"LTS"** — click it to download the installer
-4. Run the downloaded file (it will be in your "Downloads" folder)
-5. Keep clicking **"Next"** through the installer — just accept all the defaults
-6. When it finishes, you're done!
-
-**To check it worked:**
-1. Press `Windows Key + R` on your keyboard
-2. Type `cmd` and press Enter (this opens the "Command Prompt" — a black window where you type commands)
-3. Type this exactly and press Enter:
-   ```
-   node --version
-   ```
-4. You should see a number like `v20.x.x` — that means Node.js is installed! ✅
-
----
-
-### Step 3: Install Wrangler (Cloudflare's Command-Line Tool)
-
-What is Wrangler? → It's a tool that lets you send your website to Cloudflare without logging into the website. It talks to Cloudflare from the command window.
-
-1. Open the **Command Prompt** (press `Windows Key + R`, type `cmd`, press Enter)
-2. Type this exactly and press Enter:
-   ```
-   npm install -g wrangler
-   ```
-3. Wait a minute or two — you'll see text scrolling by. When it finishes, you're done!
-
-**To check it worked:**
+```bash
+git clone https://github.com/hariharanboss/personal-lms.git
+cd personal-lms
 ```
-wrangler --version
+
+### 2. Install Wrangler
+
+```bash
+npm install -g wrangler
+wrangler --version   # confirm install
 ```
-You should see a version number like `4.x.x`. ✅
+
+### 3. Authenticate with Cloudflare
+
+```bash
+wrangler login
+```
+
+This opens a browser window — log in with your Cloudflare account and approve the request.
+
+### 4. Create a KV namespace
+
+This is where file metadata will be stored.
+
+```bash
+wrangler kv:namespace create "FILES_DB"
+```
+
+Wrangler prints an `id` and `preview_id` — copy both; you'll need them next.
+
+### 5. Configure `wrangler.toml`
+
+Open `wrangler.toml` and replace the placeholder values with the `id` and `preview_id` from the previous step:
+
+```toml
+[[kv_namespaces]]
+binding = "FILES_DB"
+id = "your-kv-namespace-id"
+preview_id = "your-kv-namespace-preview-id"
+```
+
+### 6. Set your passwords
+
+Two secrets are required — they're stored securely by Cloudflare and never appear in your code:
+
+```bash
+wrangler secret put APP_PASSWORD            # password visitors use to view the library
+wrangler secret put MANAGE_LINKS_PASSWORD   # stronger password for admin/upload access
+```
+
+> Use a strong, unique password for `MANAGE_LINKS_PASSWORD` in particular, since it controls who can upload and manage content.
+
+### 7. Build the project
+
+Bundles `index.html` and `sw.js` into the Worker-servable `html.js` / `sw-content.js`:
+
+```bash
+npm run build
+```
 
 ---
 
-### Step 4: Log In to Cloudflare Through Wrangler
+## 🚀 Usage
 
-1. In the Command Prompt, type:
-   ```
-   wrangler login
-   ```
-2. A web browser window will automatically open asking you to log in to Cloudflare
-3. Log in with the Cloudflare account you created in **Step 1**
-4. You'll see a message saying something like "✓ Successfully authenticated"
+### Run locally
 
----
+```bash
+npm run dev
+```
 
-### Step 5: Download This Project to Your Computer
+Visit `http://localhost:8787`, enter your `APP_PASSWORD`, and you're in.
 
-1. Open the Command Prompt (`Windows Key + R`, type `cmd`, Enter)
-2. Navigate to where you want to save the project. For example, to save it on your Desktop:
-   ```
-   cd Desktop
-   ```
-3. Download the project from GitHub by typing:
-   ```
-   git clone https://github.com/hariharanboss/jupiter-lab-codes.git
-   ```
-4. Go into the project folder:
-   ```
-   cd jupiter-lab-codes
-   ```
+### Deploy to production
 
-**What just happened?** → This downloaded all the project files from GitHub (a website where code is stored) to your computer.
+```bash
+npm run build     # or: npm run predeploy
+wrangler deploy
+```
 
----
+Wrangler prints a live URL (e.g. `https://your-project.workers.dev/`) — that's your deployed library.
 
-### Step 6: Create a KV Namespace (Your File Storage)
+### Using the app
 
-What is a KV Namespace? → Think of it as a special folder in the cloud where Cloudflare will store information about your files (their names, descriptions, and links). It's like a database — a smart filing cabinet.
+| UI element | What it does |
+|---|---|
+| Password screen | Enter `APP_PASSWORD` to access the library |
+| Sidebar | Browse folders/subjects |
+| Search box | Find files by name |
+| Filters | Narrow results by type, size, date, or tag |
+| File cards | Click to preview a file in a modal |
+| Upload area | Drag & drop files (requires `MANAGE_LINKS_PASSWORD`) |
+| Theme switcher | Toggle light/dark mode |
+| Breadcrumb | Shows and navigates your current folder path |
 
-1. In the Command Prompt, make sure you're inside the project folder (you should see files like `worker.js` and `wrangler.toml`), then type:
-   ```
-   wrangler kv:namespace create "FILES_DB"
-   ```
-2. You'll see output that looks something like this:
-   ```
-   ✓ Created KV namespace FILES_DB
-   ✓ Add this to your wrangler.toml:
-     kv_namespaces = [ { binding = "FILES_DB", id = "abc123def456", preview_id = "xyz789" } ]
-   ```
-3. **Copy the `id` value** — it looks like a random string of letters and numbers (e.g., `abc123def456`). You'll need it in the next step.
-4. **Copy the `preview_id` value** too — it looks similar. You'll need this as well.
+### 🔑 Entering admin mode
 
----
+Admin mode is hidden from the regular UI on purpose — there's no visible "Admin" button for casual visitors. You can unlock it in either of these ways:
 
-### Step 7: Update the Configuration File
+**Option A — keyboard shortcut**
+Press **`Ctrl + Shift + A`** anywhere on the site (after logging in with the visitor password). This reveals the admin/upload controls once you authenticate with `MANAGE_LINKS_PASSWORD`.
 
-1. In the project folder, find a file called **`wrangler.toml`** — right-click it and choose **"Open with" → "Notepad"** (or any text editor)
-2. You'll see something like this:
-   ```toml
-   [[kv_namespaces]]
-   binding = "FILES_DB"
-   id = "your-kv-namespace-id"
-   ```
-3. Replace `your-kv-namespace-id` with the **`id`** you copied from Step 6
-4. Replace `your-kv-namespace-preview-id` with the **`preview_id`** you copied from Step 6
-5. Save the file and close Notepad
+**Option B — direct URL**
+Navigate straight to the admin route by appending `?admin#/` to your site's URL:
 
-**What is this file?** → `wrangler.toml` is like an address book — it tells Wrangler where your KV storage is and what your website is called.
+```
+https://your-deployed-site.workers.dev/?admin#/
+```
 
----
+Either method drops you into the same admin-gated view — you'll still need to enter `MANAGE_LINKS_PASSWORD` to actually unlock uploads and management actions.
 
-### Step 8: Set Up Your Passwords (Security)
+**Logging out of admin mode**
+Open the menu icon in the top corner of the UI, then select **Admin Logout**. This ends the admin session and returns you to normal (visitor) browsing.
 
-What is a "secret"? → A secret is a password that Cloudflare stores securely. It's never visible in the code files — it only exists on Cloudflare's servers.
+### Uploading files (admin)
 
-You need to set **two passwords**:
+Uploads are gated behind the **admin password** (`MANAGE_LINKS_PASSWORD`), kept separate from the visitor password so regular users can browse and download but can't add or change content.
 
-1. **App Password** — The password visitors will use to access the website
-2. **Admin Password** — A stronger password for uploading and managing files
+1. Log in to the site with the visitor `APP_PASSWORD` as usual.
+2. Enter admin mode using **`Ctrl + Shift + A`** or the **`?admin#/`** URL (see above), then enter `MANAGE_LINKS_PASSWORD` when prompted.
+3. **Drag and drop** files onto the upload zone, or use the file picker if one is shown — the app is set up to handle `.docx` uploads out of the box (rendered in-browser via Mammoth.js), alongside the other previewable types (`.pdf`, images, code files) that already ship in the library.
+4. Once uploaded, the Worker writes the file's metadata (name, path, tags) to the **Cloudflare KV** namespace (`FILES_DB`), so it's immediately available to every visitor worldwide — no redeploy needed.
+5. New uploads appear in the sidebar/search results as soon as the KV write completes; use the search box or filters to confirm they're indexed correctly.
+6. When you're done managing content, log out of admin mode via the menu icon → **Admin Logout**.
 
-**To set your App Password:**
-1. In the Command Prompt, type:
-   ```
-   wrangler secret put APP_PASSWORD
-   ```
-2. It will ask you to type a password — enter your chosen app password and press Enter
-3. It won't show the characters as you type — that's normal! Just type it carefully and press Enter
+**Things to keep in mind:**
+- Only share `MANAGE_LINKS_PASSWORD`, and the `Ctrl+Shift+A` / `?admin#/` access method, with people you trust to manage the library — it has full upload/management access.
+- Because storage is KV-backed rather than a traditional file server, very large binaries or extremely high upload volume may hit Cloudflare's KV value-size and rate limits — fine for personal/study-material use, but worth knowing if you plan to host a large archive.
+- If an upload doesn't appear, re-check that `MANAGE_LINKS_PASSWORD` was entered correctly and that your KV namespace ID in `wrangler.toml` matches the one created in Step 4 of setup.
 
-**To set your Admin Password:**
-1. In the Command Prompt, type:
-   ```
-   wrangler secret put MANAGE_LINKS_PASSWORD
-   ```
-2. Enter a strong password and press Enter
+### Command reference
 
-**Password tips:**
-- Use at least 8 characters
-- Mix letters, numbers, and symbols (e.g., `MySecret123!`)
-- The admin password should be different and stronger than the app password
-- Don't share these passwords publicly!
-
----
-
-### Step 9: Build the Project (Package Everything Together)
-
-What does "build" mean? → The project has source files (`index.html`, `sw.js`) that need to be packaged into single files (`html.js`, `sw-content.js`) so Cloudflare can run them properly. Think of it like compiling a recipe — gathering all ingredients into one dish.
-
-1. In the Command Prompt, make sure you're in the project folder
-2. Type:
-   ```
-   npm run build
-   ```
-3. You should see:
-   ```
-   Generated html.js (xxxxx chars inlined)
-   Generated sw-content.js (xxxxx chars inlined)
-   ```
-
----
-
-### Step 10: Run Locally (Test on Your Computer)
-
-Before you put the site on the internet, let's test it on your own computer!
-
-1. In the Command Prompt, type:
-   ```
-   npm run dev
-   ```
-2. You should see something like:
-   ```
-   ⚡ Started local server at http://localhost:8787
-   ```
-3. Open your web browser and go to: **http://localhost:8787**
-4. The website will appear! You'll see a password screen
-5. Type your **App Password** and click enter — you're now inside! 🎉
-6. To stop the local server, go back to the Command Prompt and press `Ctrl + C`
-
----
-
-### Step 11: Deploy to Production (Put It on the Internet!)
-
-Now it's time to share your website with the world! 🌍
-
-1. **First, build the project** (from Step 9):
-   ```
-   npm run predeploy
-   ```
-   Or simply:
-   ```
-   npm run build
-   ```
-
-2. **Then deploy:**
-   ```
-   wrangler deploy
-   ```
-
-3. Wait a minute — you'll see your worker name being deployed. When it finishes, you'll see a URL like:
-   ```
-   https://lms.vasudevhere0.workers.dev/
-   ```
-
-4. Open that URL in your browser — your site is live! 🎉
-
----
-
-## 🔌 What Each Page and Button Does
-
-| What You See | What It Does |
-|-------------|-------------|
-| **Password screen** | Enter the App Password to access the website |
-| **Sidebar (left)** | Shows all your folders — click to navigate |
-| **Search box** | Type to find files by name |
-| **Filters** | Filter files by type, size, date, or tags (admin only) |
-| **File cards** | Click a file to preview it in a modal window |
-| **Upload area** | Drag and drop `.docx` files to upload them (admin only) |
-| **Theme switcher (top right)** | Toggle between light and dark mode |
-| **Breadcrumb** | Shows your current location in the folder tree — click to go back |
+| Command | Description |
+|---|---|
+| `npm run build` | Bundle source files for deployment |
+| `npm run dev` | Start a local development server |
+| `npm run deploy` | Build and deploy to Cloudflare |
+| `wrangler login` | Authenticate the CLI with Cloudflare |
+| `wrangler kv:namespace create "FILES_DB"` | Create the KV storage namespace |
+| `wrangler secret put APP_PASSWORD` | Set/update the visitor password |
+| `wrangler secret put MANAGE_LINKS_PASSWORD` | Set/update the admin password |
 
 ---
 
 ## 🔐 Security Notes
 
-- **Passwords are stored securely** using Cloudflare's secret manager — they never appear in the code files
-- **Session-based authentication** means you log in once per browser session
-- **URL encoding** is used to prevent malicious file path access
-- **Admin-only features** like file uploads are protected by a separate password
+- Passwords are stored as **Cloudflare Worker secrets** — encrypted at rest and never committed to the codebase.
+- Authentication is **session-based**; visitors log in once per browser session.
+- File paths are URL-encoded to reduce path-traversal risk.
+- Admin capabilities (uploads, file management) are gated behind a separate, stronger password from the general viewer password.
+- Admin mode itself isn't exposed as a visible button in the UI — it's reached via the `Ctrl+Shift+A` shortcut or the `?admin#/` URL route, then still requires `MANAGE_LINKS_PASSWORD` to unlock. Treat both the shortcut/URL and the password as sensitive — knowing the entry point plus a weak password is what actually protects the library, so keep `MANAGE_LINKS_PASSWORD` strong.
 
 ---
 
-## 📖 Quick Reference: Commands Cheat Sheet
+## 🩺 Troubleshooting
 
-| Command | What It Does |
-|---------|-------------|
-| `npm run build` | Packages the project files |
-| `npm run dev` | Starts a local testing server |
-| `npm run deploy` | Publishes your site to the internet |
-| `wrangler login` | Logs into Cloudflare |
-| `wrangler kv:namespace create "FILES_DB"` | Creates your cloud storage |
-| `wrangler secret put APP_PASSWORD` | Sets the visitor password |
-| `wrangler secret put MANAGE_LINKS_PASSWORD` | Sets the admin password |
-
----
-
-## 🆘 Troubleshooting
-
-**Problem: `node` is not recognized**
-→ You haven't installed Node.js properly. Reinstall it from https://nodejs.org/ and restart your Command Prompt.
-
-**Problem: `wrangler` is not recognized**
-→ You haven't installed Wrangler. Run `npm install -g wrangler` and restart Command Prompt.
-
-**Problem: `git` is not recognized**
-→ You need Git installed. Download it from https://git-scm.com/ and install it.
-
-**Problem: Build fails with errors**
-→ Make sure you're in the right folder (you should see `worker.js`, `index.html`, and `wrangler.toml`). Check that you ran `npm run build` successfully.
-
-**Problem: Site shows "Error" when deployed**
-→ Check that you replaced the placeholder IDs in `wrangler.toml` with your real KV namespace IDs (Step 7). Check that you set both secrets (Step 8).
-
-**Problem: Password doesn't work**
-→ Double-check you set the secrets correctly. Run `wrangler secret put APP_PASSWORD` again if needed. Remember: the password won't show as you type — that's normal!
+| Problem | Fix |
+|---|---|
+| `node` not recognized | Reinstall Node.js from [nodejs.org](https://nodejs.org/) and restart your terminal |
+| `wrangler` not recognized | Run `npm install -g wrangler` and restart your terminal |
+| `git` not recognized | Install Git from [git-scm.com](https://git-scm.com/) |
+| Build fails | Confirm you're in the project root (should contain `worker.js`, `index.html`, `wrangler.toml`) before running `npm run build` |
+| Deployed site errors | Double-check the `id`/`preview_id` in `wrangler.toml` and confirm both secrets are set |
+| Password not accepted | Re-run `wrangler secret put APP_PASSWORD`; note the terminal won't echo characters as you type |
 
 ---
 
-## 🙏 Acknowledgments
+## 🤝 Contributing
 
-- [Cloudflare Workers](https://workers.cloudflare.com/) — Free serverless platform
-- [Three.js](https://threejs.org/) — 3D particle animation library
-- [Mammoth.js](https://github.com/mwilliamson/mammoth.js) — DOCX document converter
-- [Pastelink](https://pastelink.net/) — External code hosting service
+Contributions are welcome! To propose a change:
+
+1. **Fork** the repository.
+2. Create a feature branch:
+   ```bash
+   git checkout -b feature/your-feature-name
+   ```
+3. Make your changes, following the existing code style (vanilla JS, no build-step frameworks).
+4. Test locally with `npm run dev` before submitting.
+5. Commit with a clear message and push to your fork:
+   ```bash
+   git commit -m "Add: short description of the change"
+   git push origin feature/your-feature-name
+   ```
+6. Open a **Pull Request** describing what you changed and why.
+
+**Good areas to contribute:**
+- Additional file preview formats
+- Accessibility improvements
+- UI/UX polish
+- Bug fixes and performance improvements
+
+Please open an issue first for larger changes so the approach can be discussed before you invest significant time.
 
 ---
 
 ## 📄 License
 
-This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for full details.
+Released under the **MIT License**. See [`LICENSE`](./LICENSE) for full details.
 
----
+## 🙏 Acknowledgments
+
+- [Cloudflare Workers](https://workers.cloudflare.com/) — serverless edge platform
+- [Three.js](https://threejs.org/) — particle background animation
+- [Mammoth.js](https://github.com/mwilliamson/mammoth.js) — DOCX-to-HTML conversion
+- [pdf.js](https://mozilla.github.io/pdf.js/) — in-browser PDF rendering
+- [highlight.js](https://highlightjs.org/) — code syntax highlighting
 
 ## 👤 Author
 
-**Hariharan** ([hariharanboss](https://github.com/hariharanboss))
-
-- 🌐 GitHub: https://github.com/hariharanboss
-- 📧 Email: Vasudevhere0@gmail.com
+**Hari Haran**
+- 🌐 GitHub: [github.com/hariharanboss](https://github.com/hariharanboss)
+- 💼 Portfolio: [reachhari.vercel.app](https://reachhari.vercel.app)
+- 💬 Telegram: [@haris_garage](https://t.me/haris_garage)
+- 📧 Email: [reachthatguyhari@gmail.com](mailto:reachthatguyhari@gmail.com)
 
 ---
 
-<p align="center">
-  <i>Built with ❤️ and ☁️ Cloudflare Workers</i>
-</p>
+*Built with ❤️ on Cloudflare Workers.*
